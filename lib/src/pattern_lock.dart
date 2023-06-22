@@ -27,7 +27,7 @@ class PatternLock extends StatefulWidget {
   final bool fillPoints;
 
   // Whether keep status when done.
-  final bool keepLastStatus;
+  final bool keepStatusWhenDone;
 
   /// Callback that called when user's input complete. Called if user selected one or more points.
   final Function(List<int>) onInputComplete;
@@ -43,7 +43,7 @@ class PatternLock extends StatefulWidget {
     this.showInput = true,
     this.selectThreshold = 25,
     this.fillPoints = false,
-    this.keepLastStatus = false,
+    this.keepStatusWhenDone = false,
     required this.onInputComplete,
   }) : super(key: key);
 
@@ -54,18 +54,24 @@ class PatternLock extends StatefulWidget {
 class _PatternLockState extends State<PatternLock> {
   List<int> used = [];
   Offset? currentPoint;
+  Offset? lastPointOffset;
 
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
-      onPanEnd: (DragEndDetails details) {
+      onPanEnd: (DragEndDetails details) async {
         if (used.isNotEmpty) {
           widget.onInputComplete(used);
         }
-        if (!widget.keepLastStatus) {
+        await Future.delayed(const Duration(milliseconds: 300));
+        if (!widget.keepStatusWhenDone) {
           setState(() {
             used = [];
             currentPoint = null;
+          });
+        } else {
+          setState(() {
+            currentPoint = lastPointOffset;
           });
         }
       },
@@ -87,6 +93,7 @@ class _PatternLockState extends State<PatternLock> {
             final toPoint = (circlePosition(i) - localPosition).distance;
             if (!used.contains(i) && toPoint < widget.selectThreshold) {
               used.add(i);
+              lastPointOffset = circlePosition(i);
             }
           }
         });
