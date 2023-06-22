@@ -26,6 +26,9 @@ class PatternLock extends StatefulWidget {
   // Whether fill points.
   final bool fillPoints;
 
+  // Whether keep status when done.
+  final bool keepLastStatus;
+
   /// Callback that called when user's input complete. Called if user selected one or more points.
   final Function(List<int>) onInputComplete;
 
@@ -40,6 +43,7 @@ class PatternLock extends StatefulWidget {
     this.showInput = true,
     this.selectThreshold = 25,
     this.fillPoints = false,
+    this.keepLastStatus = false,
     required this.onInputComplete,
   }) : super(key: key);
 
@@ -58,10 +62,12 @@ class _PatternLockState extends State<PatternLock> {
         if (used.isNotEmpty) {
           widget.onInputComplete(used);
         }
-        setState(() {
-          used = [];
-          currentPoint = null;
-        });
+        if (!widget.keepLastStatus) {
+          setState(() {
+            used = [];
+            currentPoint = null;
+          });
+        }
       },
       onPanUpdate: (DragUpdateDetails details) {
         RenderBox referenceBox = context.findRenderObject() as RenderBox;
@@ -125,7 +131,7 @@ class _LockPainter extends CustomPainter {
     required this.pointRadius,
     required this.showInput,
     required bool fillPoints,
-  })   : circlePaint = Paint()
+  })  : circlePaint = Paint()
           ..color = notSelectedColor
           ..style = fillPoints ? PaintingStyle.fill : PaintingStyle.stroke
           ..strokeWidth = 2,
